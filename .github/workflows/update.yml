@@ -1,0 +1,54 @@
+name: Check upstream releases
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+  pull-requests: write
+concurrency:
+  group: update-release
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+      - name: Check and verify release
+        id: update
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          ./update.sh
+          if ! git diff --quiet -- sources.json; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Install stable Nix
+        if: steps.update.outputs.changed == 'true'
+        run: |
+          curl --fail --silent --show-error --location https://nixos.org/nix/install -o /tmp/install-nix
+          sh /tmp/install-nix --no-daemon --yes
+      - name: Test and build before proposing update
+        if: steps.update.outputs.changed == 'true'
+        run: |
+          . "$HOME/.nix-profile/etc/profile.d/nix.sh"
+          python3 -m unittest discover -s tests -v
+          nix-build --option experimental-features ''
+      - name: Open or refresh pull request
+        if: steps.update.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(python3 -c 'import json; print(json.load(open("sources.json"))["version"])')
+          branch="update/pi-$version"
+          git checkout -B "$branch"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sources.json
+          git commit -m "pi-coding-agent: update to $version"
+          git push --force-with-lease origin "$branch"
+          if ! gh pr view "$branch" >/dev/null 2>&1; then
+            gh pr create --head "$branch" --title "pi-coding-agent: update to $version" \
+              --body "Verified all four release checksums and built/tested x86_64-linux. Review before merging."
+          fi
