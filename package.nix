@@ -70,9 +70,14 @@ stdenv.mkDerivation {
   '';
 
   postFixup = lib.optionalString stdenv.hostPlatform.isLinux ''
+    # On ARM64, adding an RPATH corrupts ELF version metadata in this Bun binary.
+    # Its dependencies are all glibc libraries, found through the Nix interpreter.
     ${bunPatchelf}/bin/patchelf \
       --set-interpreter "$(cat "$NIX_CC/nix-support/dynamic-linker")" \
-      --set-rpath "${lib.makeLibraryPath [ stdenv.cc.libc ]}" \
+      ${
+        lib.optionalString (!stdenv.hostPlatform.isAarch64)
+          ''--set-rpath "${lib.makeLibraryPath [ stdenv.cc.libc ]}"''
+      } \
       "$out/lib/pi/pi"
     # Native clipboard helper is loaded with dlopen, not linked into pi.
     while IFS= read -r -d "" helper; do
@@ -94,7 +99,8 @@ stdenv.mkDerivation {
     runHook preInstallCheck
     export HOME="$TMPDIR/check-home"
     mkdir -p "$HOME"
-    test "$("$out/bin/pi" --version)" = "${sources.version}"
+    env -u LD_LIBRARY_PATH "$out/bin/pi" --version > "$TMPDIR/pi-version"
+    test "$(cat "$TMPDIR/pi-version")" = "${sources.version}"
     "$out/bin/pi" --help > "$TMPDIR/pi-help"
     grep -q -- '--provider' "$TMPDIR/pi-help"
     test -f "$out/lib/pi/theme/dark.json"

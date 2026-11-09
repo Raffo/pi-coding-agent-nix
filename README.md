@@ -108,17 +108,20 @@ nix-build
 - Installs the whole archive under `$out/lib/pi`, including themes, HTML
   templates, WASM, examples, and native helpers. `PI_PACKAGE_DIR` points there.
 - Linux ELF interpreter/RPATH and the libxcb-dependent helper are patched for
-  Nix. Keep the main executable's RPATH limited to its actual glibc dependency:
-  adding an unnecessary long GCC RPATH made this Bun executable segfault with
-  patchelf 0.15.2 during validation.
+  Nix. On ARM64, only the main executable's interpreter is patched: adding an
+  RPATH corrupts its ELF version metadata and crashes the loader. Its glibc
+  dependencies resolve through the Nix interpreter without an RPATH or
+  `LD_LIBRARY_PATH`. On x86_64, keep its RPATH limited to glibc: adding an
+  unnecessary long GCC RPATH made this Bun executable segfault with patchelf
+  0.15.2 during validation.
 - Supplies bash, fd, ripgrep, CA certificates, and Linux clipboard commands.
   Node/npm are appended to PATH for package management without overriding your
   preferred Node installation. The core executable embeds its own Bun runtime.
 - Disables version-check notices and telemetry by default; callers can override
   the corresponding environment variables. Update through Nix, not `pi update self`.
-- Assets are pinned for x86_64/aarch64 Linux and macOS. **Only x86_64-linux has
-  been built and runtime-tested on this VM.** Other platforms need native testing;
-  cross-compilation is not claimed.
+- Assets are pinned for x86_64/aarch64 Linux and macOS. **Both x86_64-linux and
+  aarch64-linux have been built and runtime-tested natively.** macOS still needs
+  native testing; cross-compilation is not claimed.
 
 ## This VM
 
