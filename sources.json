@@ -1,21 +1,21 @@
 {
-  "version": "1.5.0",
+  "version": "1.6.1",
   "platforms": {
     "x86_64-linux": {
       "name": "pi-linux-x64.tar.gz",
-      "hash": "sha256-34cLoONEy3szWNjY8ZOXuLjSJahml4RzataKXCFp1Ts="
+      "hash": "sha256-PH8AcV61EuFlwNqMrTFNc8g7VNW/d0i+Stxhj8g1e2g="
     },
     "aarch64-linux": {
       "name": "pi-linux-arm64.tar.gz",
-      "hash": "sha256-XVcRtIYAdWRzaC6GNgsCaxGr91keXREutBHU2iwQDZo="
+      "hash": "sha256-r95kHWxZBNJpYN20Ijv1Y7CGDPGg68RDuF3v9n0Eh1M="
     },
     "x86_64-darwin": {
       "name": "pi-darwin-x64.tar.gz",
-      "hash": "sha256-9BsmzZoXVKviWeBaQh+zOwCTZ3nLB4PIk6Y4nRvS7g0="
+      "hash": "sha256-XC31dEx4KMyLeMVmWjp4XMBzEwAFxxHTUBfGpcQZFpo="
     },
     "aarch64-darwin": {
       "name": "pi-darwin-arm64.tar.gz",
-      "hash": "sha256-qb8NgtWNKn0zf0rkFxtfyev/5CUJUnqDE2TEtlrfLN8="
+      "hash": "sha256-2P2OJMKlBUrjg9g7Jvbrb5UO32E5F+Q0pSOU9EzU2TM="
     }
   }
 }
